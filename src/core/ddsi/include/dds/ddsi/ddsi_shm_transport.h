@@ -75,6 +75,8 @@ DDS_EXPORT iceoryx_header_t *iceoryx_header_from_chunk(const void *iox_chunk);
 
 DDS_EXPORT void shm_set_loglevel(enum ddsi_shm_loglevel);
 
+DDS_EXPORT bool ddsi_shm_type_allowed(const struct ddsi_config *cfg, const char *type_name);
+
 DDS_EXPORT void *shm_create_chunk(iox_pub_t iox_pub, size_t size);
 
 DDS_EXPORT void shm_set_data_state(void *iox_chunk,

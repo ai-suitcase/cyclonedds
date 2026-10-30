@@ -11,6 +11,33 @@
  */
 #include "dds/ddsi/ddsi_shm_transport.h"
 #include "iceoryx_binding_c/log.h"
+#include <ctype.h>
+#include <string.h>
+
+bool ddsi_shm_type_allowed(const struct ddsi_config *cfg, const char *type_name)
+{
+  const size_t type_length = strlen(type_name);
+  const char *entry = cfg->shm_allowed_types;
+  if (entry == NULL)
+    return true;
+  while (*entry)
+  {
+    const char *separator = strchr(entry, ',');
+    const char *end = separator ? separator : entry + strlen(entry);
+    while (entry < end && isspace((unsigned char)*entry))
+      entry++;
+    while (end > entry && isspace((unsigned char)end[-1]))
+      end--;
+    const size_t length = (size_t)(end - entry);
+    if ((length == 1 && *entry == '*') ||
+        (length == type_length && memcmp(entry, type_name, length) == 0))
+      return true;
+    if (separator == NULL)
+      break;
+    entry = separator + 1;
+  }
+  return false;
+}
 
 void iox_sub_context_init(iox_sub_context_t *context)
 {

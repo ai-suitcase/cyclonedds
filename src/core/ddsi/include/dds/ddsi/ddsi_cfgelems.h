@@ -1792,6 +1792,15 @@ static struct cfgelem shmem_cfgelems[] = {
     MEMBER(enable_shm),
     FUNCTIONS(0, uf_boolean, 0, pf_boolean),
     DESCRIPTION("<p>This element allows to enable shared memory in Cyclone DDS.</p>")),
+  STRING("AllowedTypes", NULL, 1, "*",
+    MEMBER(shm_allowed_types),
+    FUNCTIONS(0, uf_string, ff_free, pf_string),
+    DESCRIPTION(
+      "<p>Comma-separated exact DDS type names eligible for shared memory. "
+      "Whitespace around names is ignored. The default * permits all types; "
+      "an empty list permits none. Other types retain the network transport "
+      "and do not consume Iceoryx endpoint slots. Existing QoS eligibility "
+      "checks still apply to allowed types.</p>")),
   STRING("Locator", NULL, 1, "",
     MEMBER(shm_locator),
     FUNCTIONS(0, uf_string, ff_free, pf_string),

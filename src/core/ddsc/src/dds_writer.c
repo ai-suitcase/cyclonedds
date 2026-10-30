@@ -311,6 +311,9 @@ static bool dds_writer_support_shm(const struct ddsi_config* cfg, const dds_qos_
       false == cfg->enable_shm)
     return false;
 
+  if (!ddsi_shm_type_allowed(cfg, tp->m_stype->type_name))
+    return false;
+
   // check necessary condition: fixed size data type OR serializing into shared
   // memory is available
   if (!tp->m_stype->fixed_size && (!tp->m_stype->ops->get_serialized_size ||

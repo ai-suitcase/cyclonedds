@@ -432,6 +432,7 @@ struct ddsi_config
 
 #ifdef DDS_HAS_SHM
   int enable_shm;
+  char *shm_allowed_types;
   char *shm_locator;
   char *iceoryx_service;
   enum ddsi_shm_loglevel shm_log_lvl;
