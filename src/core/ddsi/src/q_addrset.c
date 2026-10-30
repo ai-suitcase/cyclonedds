@@ -524,9 +524,23 @@ int addrset_any_mc (const struct addrset *as, ddsi_xlocator_t *dst)
 void addrset_any_uc_else_mc_nofail (const struct addrset *as, ddsi_xlocator_t *dst)
 {
   LOCK (as);
-  if (!ddsrt_avl_cis_empty (&as->ucaddrs))
+  const struct addrset_node *n = ddsrt_avl_croot (&addrset_treedef, &as->ucaddrs);
+#ifdef DDS_HAS_SHM
+  // This selector is used for RTPS messages to proxy endpoints. Iceoryx
+  // transfers samples, not RTPS control messages. In particular a reader
+  // falling back to the network must send ACKNACKs to the writer's network
+  // address even when that writer also advertises an iceoryx locator.
+  if (n && n->loc.c.kind == NN_LOCATOR_KIND_SHEM)
   {
-    const struct addrset_node *n = ddsrt_avl_croot_non_empty (&addrset_treedef, &as->ucaddrs);
+    ddsrt_avl_citer_t it;
+    for (n = ddsrt_avl_citer_first (&addrset_treedef, &as->ucaddrs, &it);
+         n && n->loc.c.kind == NN_LOCATOR_KIND_SHEM;
+         n = ddsrt_avl_citer_next (&it))
+      ;
+  }
+#endif
+  if (n)
+  {
     *dst = n->loc;
   }
   else
