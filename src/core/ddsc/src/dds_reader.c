@@ -524,6 +524,16 @@ static bool dds_reader_support_shm(const struct ddsi_config* cfg, const dds_qos_
     return false;
   }
 
+  // The reader history cache retains borrowed iceoryx chunks until the
+  // application takes them. Reserve one additional chunk for the next sample
+  // before the oldest history entry can be evicted. Preserve larger DDS
+  // histories by falling back to the network transport instead of silently
+  // limiting them to iceoryx's fixed queue and held-chunk capacities.
+  if ((uint32_t) qos->history.depth > iox_cfg_max_subscriber_queue_capacity () ||
+      (uint32_t) qos->history.depth >= iox_cfg_max_chunks_held_per_subscriber_simultaneously ()) {
+    return false;
+  }
+
   if(!(qos->durability.kind == DDS_DURABILITY_VOLATILE ||
     qos->durability.kind == DDS_DURABILITY_TRANSIENT_LOCAL)) {
     return false;
@@ -551,9 +561,8 @@ static iox_sub_options_t create_iox_sub_options(const dds_qos_t* qos) {
   // the reader history cache), but this is valid behavior for volatile.
   // It may still lead to undesired behavior as the queues are filled very
   // fast if data is published as fast as possible.
-  // NB: If the history depth is larger than the queue capacity, we still use
-  // shared memory but limit the queueCapacity accordingly (otherwise iceoryx
-  // emits a warning and limits it itself)
+  // dds_reader_support_shm routes histories beyond the queue and held-chunk
+  // capacities over the network. Keep this clamp as a defensive bound.
 
   if ((uint32_t) qos->history.depth <= max_sub_queue_capacity) {
     opts.queueCapacity = (uint64_t)qos->history.depth;
